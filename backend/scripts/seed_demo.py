@@ -1,10 +1,12 @@
 from sqlalchemy import select,func
 from src.config.database import Session,Base,engine
-from src.models.entities import User,Sample,Transfer,Trial
+from src.config.migrations import upgrade_schema
+from src.models.entities import User,Sample,Transfer,Trial,AllocationBatch
 from src.utils.security import password_hash
 
 def seed():
     Base.metadata.create_all(engine)
+    upgrade_schema()
     with Session() as db:
         for role in ('admin','operator','viewer'):
             email=role+'@qingyu.test'
@@ -20,6 +22,6 @@ def seed():
                 sample=db.scalar(select(Sample).where(Sample.code==code))
                 db.add(Transfer(code=req,sample_id=sample.id,destination=['理化检测室','金属分析室','复核室'][i],quantity=[30,20,15][i],note='09:15 交接班复核'))
         db.commit()
-        counts={cls.__tablename__:db.scalar(select(func.count()).select_from(cls)) for cls in (User,Sample,Transfer,Trial)}
+        counts={cls.__tablename__:db.scalar(select(func.count()).select_from(cls)) for cls in (User,Sample,Transfer,Trial,AllocationBatch)}
         print(counts)
 if __name__=='__main__': seed()

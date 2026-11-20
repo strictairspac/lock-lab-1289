@@ -7,7 +7,8 @@ from src.models.entities import Trial,Transfer,TrialBalance,Receipt,Sample
 def execute(trial_id):
     with Session() as db:
         trial=db.get(Trial,trial_id);transfer=db.get(Transfer,trial.transfer_id);sample=db.get(Sample,transfer.sample_id)
-        timeout=trial.timeout_ms;qty=transfer.quantity;initial=sample.quantity
+        balance=db.get(TrialBalance,trial_id)
+        timeout=trial.timeout_ms;qty=transfer.quantity;initial=balance.remaining+balance.received
         trial.status='running';db.commit()
     acquired=threading.Event(); contender_done=threading.Event(); traces=[]; errors=[]
     def holder():
